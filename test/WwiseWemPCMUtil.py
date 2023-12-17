@@ -1,0 +1,115 @@
+"""
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+from SoundBankUtil import *
+
+
+class RiffChunk:
+    riff_name = None
+    riff_size = None
+    riff_type = None
+
+    def __str__(self):
+        print("-------------RIFF Chunk----------------")
+        print("riff_name: " + str(self.riff_name))
+        print("riff_size: " + str(self.riff_size))
+        print("riff_type: " + str(self.riff_type))
+        print("RIFF Chunk总占用大小：12")
+        print("---------------------------------------")
+
+
+class FormatChunk:
+    fmt_id = None
+    fmt_size = None  # 数据字段包含数据的大小。如无扩展块，则值为16；有扩展块，则值为= 16 + 2字节扩展块长度 + 扩展块长度或者值为18（只有扩展块的长度为2字节，值为0）
+    fmt_tag = None  # 2字节，表示音频数据的格式。如值为1，表示使用PCM格式。
+    fmt_channels = None  # 2字节，声道数。值为1则为单声道，为2则是双声道。
+    fmt_samples_per_sec = None  # 音频的码率，每秒播放的字节数。samples_per_sec * channels * bits_per_sample / 8，可以估算出使用缓冲区的大小
+    fmt_avg_bytes_per_sec = None
+    fmt_blockalign = None
+    fmt_bits_per_sample = None
+
+    def __str__(self):
+        print("-------------Format  Chunk-------------")
+        print("fmt_id: " + str(self.fmt_id))
+        print("fmt_size: " + str(self.fmt_size))
+        print("fmt_tag: " + str(self.fmt_tag))
+        print("fmt_channels: " + str(self.fmt_channels))
+        print("fmt_samples_per_sec: " + str(self.fmt_samples_per_sec))
+        print("fmt_avg_bytes_per_sec: " + str(self.fmt_avg_bytes_per_sec))
+        print("fmt_blockalign: " + str(self.fmt_blockalign))
+        print("fmt_bits_per_sample: " + str(self.fmt_bits_per_sample))
+        print("Format Chunk总占用大小：24")
+        print("---------------------------------------")
+
+
+class DataChunk:
+    data_id = None
+    data_size = None
+    data_bytes = None
+
+    def __str__(self):
+        print("---------------Data  Chunk-------------")
+        print("data_id: " + str(self.data_id))
+        print("data_size: " + str(self.data_size))
+        # print("data_bytes: " + str(self.data_bytes))
+        print("---------------------------------------")
+
+
+def main():
+    # 初始化路径
+    test_wem_path = r"C:\Users\Administrator\Desktop\Test01.wem"
+
+    # 打开wem文件
+    test_wem_file = open(test_wem_path, "rb")
+
+    # 打印总字节数
+    wem_file_size = os.path.getsize(test_wem_path)
+    print("wem_file_size: " + str(wem_file_size))
+
+    # -------------RIFF CHUNK------------------
+    RIFF = RiffChunk()
+
+    RIFF.riff_name = test_wem_file.read(4)
+    RIFF.riff_size = int.from_bytes(test_wem_file.read(4), "little")
+    RIFF.riff_type = test_wem_file.read(4)
+
+    RIFF.__str__()
+
+    # -------------Format CHUNK------------------
+    FMT = FormatChunk()
+
+    FMT.fmt_id = test_wem_file.read(4)
+    FMT.fmt_size = int.from_bytes(test_wem_file.read(4), "little")
+    FMT.fmt_tag = int.from_bytes(test_wem_file.read(2), "little")
+    FMT.fmt_channels = int.from_bytes(test_wem_file.read(2), "little")
+    FMT.fmt_samples_per_sec = int.from_bytes(test_wem_file.read(4), "little")
+    FMT.fmt_avg_bytes_per_sec = int.from_bytes(test_wem_file.read(4), "little")
+    FMT.fmt_blockalign = int.from_bytes(test_wem_file.read(2), "little")
+    FMT.fmt_bits_per_sample = int.from_bytes(test_wem_file.read(2), "little")
+
+    FMT.__str__()
+
+    # ---------------Data CHUNK------------------
+    DATA = DataChunk()
+    DATA.data_id = test_wem_file.read(4)
+    DATA.data_size = int.from_bytes(test_wem_file.read(4), "little")
+    DATA.data_bytes = test_wem_file.read(wem_file_size - test_wem_file.tell())
+    DATA.__str__()
+
+    test_wem_file.close()
+
+
+if __name__ == '__main__':
+    main()
+
